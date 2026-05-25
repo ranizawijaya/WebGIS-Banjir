@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pusat Edukasi Mitigasi | Siaga Banjir Kab. Bekasi</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+         :root {
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --light: #f8fafc;
+            --text-muted: #64748b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: white;
+            color: var(--primary);
+            line-height: 1.6;
+        }
+        /* Navigation [Konsisten dengan index.html] */
+        
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 8%;
+            background: rgba(255, 255, 255, 0.95);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 800;
+            font-size: 22px;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .logo img {
+            height: 45px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+        
+        .btn-monitor {
+            background: var(--accent);
+            color: white !important;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 700;
+            transition: 0.3s;
+        }
+        /* Hero Page Section */
+        
+        .page-hero {
+            background: var(--primary);
+            color: white;
+            padding: 100px 8%;
+            text-align: center;
+            background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+        }
+        
+        .page-hero h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+        
+        .page-hero p {
+            font-size: 18px;
+            opacity: 0.8;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        /* Content Sections */
+        
+        section {
+            padding: 80px 8%;
+        }
+        
+        .section-tag {
+            color: var(--accent);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: block;
+            text-align: center;
+        }
+        
+        .section-title {
+            font-size: 32px;
+            text-align: center;
+            margin-bottom: 60px;
+            font-weight: 800;
+        }
+        /* Grid Mitigasi */
+        
+        .mitigation-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+        
+        .phase-card {
+            border-radius: 24px;
+            padding: 40px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+        
+        .phase-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .phase-card h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+        
+        .phase-card ul {
+            list-style: none;
+        }
+        
+        .phase-card li {
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: flex;
+            gap: 12px;
+            line-height: 1.4;
+        }
+        
+        .phase-card i {
+            font-size: 18px;
+            opacity: 0.8;
+        }
+        
+        .bg-pre {
+            background: var(--success);
+        }
+        
+        .bg-during {
+            background: var(--warning);
+        }
+        
+        .bg-post {
+            background: var(--accent);
+        }
+        /* Emergency Bag Checklist */
+        
+        .emergency-bag {
+            background: var(--light);
+            border-radius: 30px;
+            padding: 60px;
+            display: flex;
+            gap: 50px;
+            align-items: center;
+        }
+        
+        .bag-content {
+            flex: 1.2;
+        }
+        
+        .bag-items {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .bag-item {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .bag-item i {
+            color: var(--accent);
+        }
+        /* Status Understanding */
+        
+        .status-guide {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .status-card {
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .status-card .circle {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+        }
+        
+        footer {
+            padding: 60px 8%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="logo">
+            <img src="logo.png" alt="Logo"> SIAGA BANJIR
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html">Beranda</a></li>
+            <li><a href="edukasi.html" style="color: var(--accent);">Edukasi Mitigasi</a></li>
+            <li><a href="sistem-utama.html" class="btn-monitor">Monitoring Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <header class="page-hero">
+        <h1>Panduan Kesiapsiagaan Bencana</h1>
+        <p>Pengetahuan adalah pertahanan terbaik. Pahami langkah-langkah mitigasi untuk melindungi keluarga dan aset berharga Anda dari risiko banjir di Kabupaten Bekasi.</p>
+    </header>
+
+    <section>
+        <span class="section-tag">Prosedur Keselamatan</span>
+        <h2 class="section-title">3 Tahap Mitigasi Banjir</h2>
+
+        <div class="mitigation-grid">
+            <div class="phase-card bg-pre">
+                <h2>Pra-Bencana</h2>
+                <p style="margin-bottom: 20px; opacity: 0.9; font-size: 14px;">Langkah pencegahan dan kesiapan sebelum air naik.</p>
+                <ul>
+                    <li><i class="fas fa-check-double"></i> Pantau intensitas hujan melalui dashboard **Siaga Banjir** secara rutin.</li>
+                    <li><i class="fas fa-check-double"></i> Identifikasi lokasi evakuasi dan titik aman banjir di wilayah Anda.</li>
+                    <li><i class="fas fa-check-double"></i> Pastikan saluran air di lingkungan rumah tidak tersumbat sampah.</li>
+                    <li><i class="fas fa-check-double"></i> Amankan dokumen penting (Ijazah, Akta, Sertifikat) dalam plastik kedap air.</li>
+                </ul>
+            </div>
+
+            <div class="phase-card bg-during">
+                <h2>Saat Bencana</h2>
+                <p style="margin-bottom: 20px; opacity: 0.9; font-size: 14px;">Tindakan cepat saat wilayah mulai tergenang air.</p>
+                <ul>
+                    <li><i class="fas fa-bolt"></i> Matikan aliran listrik dari saklar utama dan cabut regulator tabung gas.</li>
+                    <li><i class="fas fa-phone-alt"></i> Hubungi Call Center Darurat **112** jika membutuhkan bantuan evakuasi.</li>
+                    <li><i class="fas fa-arrow-up"></i> Pindah ke lantai atas atau area yang lebih tinggi sesuai rekomendasi AI sistem.</li>
+                    <li><i class="fas fa-walking"></i> Hindari berjalan di dekat arus air deras atau gorong-gorong tersembunyi.</li>
+                </ul>
+            </div>
+
+            <div class="phase-card bg-post">
+                <h2>Pasca Bencana</h2>
+                <p style="margin-bottom: 20px; opacity: 0.9; font-size: 14px;">Proses pemulihan dan pembersihan setelah air surut.</p>
+                <ul>
+                    <li><i class="fas fa-virus"></i> Waspadai ancaman penyakit pasca banjir (Diare, Leptospirosis, Penyakit Kulit).</li>
+                    <li><i class="fas fa-plug"></i> Periksa instalasi listrik oleh ahli sebelum dinyalakan kembali.</li>
+                    <li><i class="fas fa-broom"></i> Bersihkan sisa lumpur menggunakan disinfektan untuk membunuh kuman.</li>
+                    <li><i class="fas fa-file-alt"></i> Laporkan kerusakan infrastruktur kepada pihak desa atau kecamatan terkait.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section style="background-color: var(--light);">
+        <div class="emergency-bag">
+            <div style="flex: 0.8; text-align: center;">
+
+                <img src="TSB.jpg" alt="Tas Siaga Bencana" style="width: 100%; max-width: 350px; height: auto; border-radius: 20px; box-shadow: 0 15px 30px rgba(0,0,0,0.1);">
+            </div>
+            <div class="bag-content">
+                <span class="hero-tag">Persiapan Logistik</span>
+                <h2 style="font-size: 28px; margin-bottom: 20px; font-weight: 800;">Apa Saja Isi Tas Siaga Bencana?</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Tas ini harus mudah dijangkau dan dibawa saat evakuasi mendadak. Pastikan stok cukup untuk 3 hari ke depan.</p>
+
+                <div class="bag-items">
+                    <div class="bag-item"><i class="fas fa-pills"></i> Kotak P3K & Obat Pribadi</div>
+                    <div class="bag-item"><i class="fas fa-tint"></i> Air Minum (Min. 3 Liter)</div>
+                    <div class="bag-item"><i class="fas fa-cookie"></i> Makanan Ringan Awet</div>
+                    <div class="bag-item"><i class="fas fa-lightbulb"></i> Senter & Baterai Cadangan</div>
+                    <div class="bag-item"><i class="fas fa-tshirt"></i> Pakaian Ganti & Selimut</div>
+                    <div class="bag-item"><i class="fas fa-id-card"></i> Salinan Dokumen Penting</div>
+                    <div class="bag-item"><i class="fas fa-power-off"></i> Powerbank & Peluit</div>
+                    <div class="bag-item"><i class="fas fa-mask"></i> Masker & Sanitizer</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section>
+        <span class="section-tag">Panduan Sistem</span>
+        <h2 class="section-title">Memahami Status Kerawanan AI-DSS</h2>
+        <p style="text-align: center; color: var(--text-muted); max-width: 800px; margin: -40px auto 40px;">Sistem **Bekasi FloodGuard** menggunakan klasifikasi warna berdasarkan data curah hujan real-time dan analisis kerentanan lahan.</p>
+
+        <div class="status-guide">
+            <div class="status-card">
+                <div class="circle" style="background: var(--success); box-shadow: 0 0 15px var(--success);"></div>
+                <h4 style="margin-bottom: 10px;">AMAN (HIJAU)</h4>
+                <p style="font-size: 13px; color: var(--text-muted);">Curah hujan rendah. Wilayah dalam kondisi stabil. Tetap jaga kebersihan saluran air.</p>
+            </div>
+            <div class="status-card">
+                <div class="circle" style="background: var(--warning); box-shadow: 0 0 15px var(--warning);"></div>
+                <h4 style="margin-bottom: 10px;">WASPADA (KUNING)</h4>
+                <p style="font-size: 13px; color: var(--text-muted);">Hujan intensitas sedang terdeteksi. Mulai amankan barang berharga ke tempat yang lebih tinggi.</p>
+            </div>
+            <div class="status-card">
+                <div class="circle" style="background: var(--danger); box-shadow: 0 0 15px var(--danger);"></div>
+                <h4 style="margin-bottom: 10px;">RAWAN (MERAH)</h4>
+                <p style="font-size: 13px; color: var(--text-muted);">Intensitas hujan tinggi (>50mm). Segera lakukan evakuasi sesuai arahan petugas.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div>
+            <p><strong>Siaga Banjir Kabupaten Bekasi</strong></p>
+            <p>Portal Resmi Mitigasi & Monitoring Bencana.</p>
+        </div>
+        <div style="text-align: right;">
+            <p>&copy; 2026 Pemerintah Kabupaten Bekasi.</p>
+            <p>Fullstack Developer: Kelompok 4 webgis TRPL 2023.</p>
+        </div>
+    </footer>
+
+</body>
+
+</html>
