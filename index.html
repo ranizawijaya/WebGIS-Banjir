@@ -12,8 +12,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <script src="config.js"></script>
-
     <style>
         :root {
             --primary: #0f172a;
@@ -341,8 +339,8 @@
     </div>
 
     <script>
-        // Menggunakan variabel global dari config.js secara otomatis dengan fallback aman
-        const API_URL = typeof CONFIG !== 'undefined' ? CONFIG.BASE_URL : "http://localhost:5678/webhook";
+        // URL API terpusat langsung menggunakan link zrok publik kamu
+        const API_URL = "https://wnyrjgvzpxlu.shares.zrok.io/webhook";
         
         let activeKecamatan = null;
         let trendChartInstance = null;
