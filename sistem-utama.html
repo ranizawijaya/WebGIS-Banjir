@@ -26,6 +26,18 @@
             --border-color: #334155;
             --text-muted: #94a3b8;
         }
+        /* Update CSS di sistem-utama.html */
+        
+        path.leaflet-interactive {
+            transition: fill-opacity 0.3s ease, stroke-width 0.3s ease, stroke 0.3s ease;
+            outline: none !important;
+            /* Menghilangkan kotak outline default browser */
+        }
+        /* Memastikan fokus klik tidak memunculkan kotak */
+        
+        path.leaflet-interactive:focus {
+            outline: none !important;
+        }
         
         * {
             margin: 0;
@@ -195,7 +207,7 @@
         
         .bottom-chart-panel {
             height: 280px;
-            min-height: 180px;
+            min-height: 40px;
             max-height: 500px;
             width: 100%;
             background: #111827;
@@ -475,7 +487,7 @@
         
         .legend {
             position: absolute;
-            bottom: 20px;
+            top: 90px;
             right: 20px;
             background: rgba(30, 41, 59, 0.9);
             padding: 14px;
@@ -538,6 +550,40 @@
          ::-webkit-scrollbar-thumb:hover {
             background: var(--accent);
         }
+        /* CSS untuk Drag Handle (Pembatas Peta & Grafik) */
+        
+        .resizer-y {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            cursor: ns-resize;
+            /* Kursor panah atas-bawah */
+            z-index: 1003;
+            /* Harus lebih tinggi dari map */
+            transition: background-color 0.3s ease;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .resizer-y:hover,
+        .resizer-y.active {
+            background: var(--accent);
+        }
+        /* Garis kecil di tengah resizer sebagai indikator bisa ditarik */
+        
+        .resizer-y::after {
+            content: '';
+            width: 40px;
+            height: 2px;
+            background: white;
+            opacity: 0.5;
+            border-radius: 2px;
+        }
+        /* Hapus animasi bawaan panel grafik agar tidak bentrok saat ditarik */
+        
+        .bottom-chart-panel {}
     </style>
 </head>
 
@@ -599,6 +645,9 @@
 
         <div class="content-right-panel">
             <div id="map"></div>
+
+            <div class="resizer-y" id="resizer"></div>
+            <div class="legend">...</div>
 
             <div class="legend">
                 <div class="legend-item"><span class="dot red"></span> Sangat Rawan (Evakuasi)</div>
@@ -682,17 +731,54 @@
                         map.removeLayer(geojsonLayer);
                     }
                     geojsonLayer = L.geoJSON(data, {
-                        style: (f) => ({
-                            fillColor: f.properties.status === 'Sangat Rawan' ? '#ef4444' : (f.properties.status === 'Waspada' ? '#f59e0b' : '#10b981'),
-                            weight: 1.5,
-                            color: 'white',
-                            fillOpacity: 0.6
-                        }),
+                        // 1. Atur gaya bawaan dan gaya saat wilayah sedang aktif/dipilih
+                        style: (f) => {
+                            const isSelected = (f.properties.kecamatan === activeKecamatan);
+                            return {
+                                fillColor: f.properties.status === 'Sangat Rawan' ? '#ef4444' : (f.properties.status === 'Waspada' ? '#f59e0b' : '#10b981'),
+                                weight: isSelected ? 4 : 1.5, // Garis tebal jika terpilih
+                                color: isSelected ? '#ffffff' : 'white', // Warna outline
+                                fillOpacity: isSelected ? 0.85 : 0.6, // Lebih pekat jika terpilih
+                                dashArray: isSelected ? '5, 5' : '' // Garis putus-putus biar estetik
+                            };
+                        },
                         onEachFeature: (f, l) => {
-                            l.on('click', () => {
+                            // 2. Efek Hover (Melayang saat kursor masuk)
+                            l.on('mouseover', (e) => {
+                                if (f.properties.kecamatan !== activeKecamatan) {
+                                    e.target.setStyle({
+                                        weight: 3,
+                                        color: '#60a5fa', // Outline biru neon
+                                        fillOpacity: 0.75
+                                    });
+                                    e.target.bringToFront(); // Bawa polygon ke paling depan
+                                }
+                            });
+
+                            // 3. Reset Hover (Saat kursor keluar)
+                            l.on('mouseout', (e) => {
+                                if (f.properties.kecamatan !== activeKecamatan) {
+                                    geojsonLayer.resetStyle(e.target);
+                                }
+                            });
+
+                            // 4. Efek Klik (Melayang Spesifik & Auto-Zoom Polygon)
+                            l.on('click', (e) => {
                                 activeKecamatan = f.properties.kecamatan;
+
+                                // Reset semua gaya peta agar yang lama kembali normal
+                                geojsonLayer.resetStyle();
+                                e.target.bringToFront();
+
+                                // Terbang (flyToBounds) tepat menutupi seluruh polygon kecamatan
+                                map.flyToBounds(e.target.getBounds(), {
+                                    padding: [40, 40], // Jarak aman dari pinggir layar
+                                    duration: 1.2 // Durasi animasi zoom
+                                });
+
                                 processDistrict(f.properties);
                             });
+
                             l.bindTooltip(`<b>${f.properties.kecamatan}</b>`, {
                                 sticky: true
                             });
@@ -700,6 +786,41 @@
                     }).addTo(map);
                 });
         }
+
+        // Script untuk mengambil list kecamatan ke kolom pencarian tetap sama
+        fetch(`${API_URL}/api/kecamatan`)
+            .then(res => res.json())
+            .then(data => {
+                const datalist = document.getElementById('kecamatan-list');
+                data.forEach(k => {
+                    let opt = document.createElement('option');
+                    opt.value = k.nama || k.kecamatan;
+                    datalist.appendChild(opt);
+                });
+            });
+
+        // UPDATE JIKA DICARI LEWAT SEARCH BAR (agar efeknya sama dengan saat diklik di peta)
+        document.getElementById('kecamatan-input').addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (!val) return;
+            geojsonLayer.eachLayer(l => {
+                if (l.feature.properties.kecamatan.toLowerCase() === val.toLowerCase()) {
+                    activeKecamatan = l.feature.properties.kecamatan;
+
+                    // Trigger efek melayang
+                    geojsonLayer.resetStyle();
+                    l.bringToFront();
+
+                    // Zoom presisi ke polygon
+                    map.flyToBounds(l.getBounds(), {
+                        padding: [40, 40],
+                        duration: 1.2
+                    });
+
+                    processDistrict(l.feature.properties);
+                }
+            });
+        });
 
         function processDistrict(props) {
             document.getElementById('detail-card').style.display = 'block';
@@ -724,6 +845,8 @@
                         rawContent = JSON.parse(rawContent);
                     }
                     document.getElementById('ai-output').innerHTML = marked.parse(rawContent);
+                    //TAMBAHKAN BARIS INI UNTUK MEMICU SUARA OTOMATIS 
+                    bacakanTeksAI(`Sistem mendeteksi wilayah Kecamatan ${props.kecamatan}. Berikut adalah analisis mitigasinya: ${rawContent}`);
                 })
                 .catch(err => {
                     document.getElementById('ai-output').innerHTML = `<div style="color: var(--danger);"><i class="fas fa-exclamation-triangle"></i> Gagal menghubungi AI Agent. Pastikan Zrok aktif.</div>`;
@@ -910,6 +1033,68 @@
             updateHeader();
             loadMap();
         }, 30000);
+
+        // --- SCRIPT UNTUK INTERAKSI RESIZE PANEL BAWAH ---
+        const resizer = document.getElementById('resizer');
+        const bottomPanel = document.querySelector('.bottom-chart-panel');
+        const rightContainer = document.querySelector('.content-right-panel');
+        let isResizing = false;
+
+        // Saat mouse ditekan pada pembatas
+        resizer.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            resizer.classList.add('active');
+            document.body.style.cursor = 'ns-resize'; // Kunci kursor
+            map.dragging.disable(); // Cegah peta ikut tergeser secara tidak sengaja
+        });
+
+        // Saat mouse digerakkan (menarik)
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+
+            // Hitung sisa tinggi layar dari posisi kursor ke bawah
+            const containerRect = rightContainer.getBoundingClientRect();
+            const newHeight = containerRect.bottom - e.clientY;
+
+            // Batasi ukuran minimum dan maksimum grafik (100px s/d tinggi container minus 200px)
+            if (newHeight >= 40 && newHeight <= containerRect.height - 200) {
+                bottomPanel.style.height = newHeight + 'px';
+                map.invalidateSize(); // Wajib dipanggil agar peta Leaflet menyesuaikan ukuran baru
+            }
+        });
+
+        // Saat mouse dilepas (selesai ditarik)
+        document.addEventListener('mouseup', function(e) {
+            if (isResizing) {
+                isResizing = false;
+                resizer.classList.remove('active');
+                document.body.style.cursor = 'default'; // Kembalikan kursor
+                map.dragging.enable(); // Aktifkan drag peta kembali
+                map.invalidateSize();
+            }
+        });
+
+        // --- SCRIPT UNTUK VOICE ASSISTANT AI ---
+        function bacakanTeksAI(teks) {
+
+            // 1. Hentikan suara sebelumnya secara instan jika pengguna mengklik kecamatan lain
+            window.speechSynthesis.cancel();
+
+            // 2. Bersihkan teks dari simbol Markdown (*, #, _, -) agar robot tidak membaca kata "bintang-bintang"
+            let teksBersih = teks.replace(/[*#`_\-]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            // 3. Inisialisasi Web Speech API bawaan browser
+            let suaraAI = new SpeechSynthesisUtterance(teksBersih);
+
+            suaraAI.lang = 'id-ID'; // Mengatur ke logat Bahasa Indonesia
+            suaraAI.rate = 1.1; // Kecepatan membaca (1.1 sedikit lebih sigap dan natural)
+            suaraAI.pitch = 1.0; // Nada suara normal
+
+            // 4. Mulai berbicara
+            window.speechSynthesis.speak(suaraAI);
+        }
     </script>
 </body>
 
