@@ -584,6 +584,77 @@
         /* Hapus animasi bawaan panel grafik agar tidak bentrok saat ditarik */
         
         .bottom-chart-panel {}
+        /* CSS Untuk Tombol Voice AI */
+        
+        .btn-voice {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            border-radius: 8px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-voice:hover {
+            background: var(--accent);
+            color: white;
+        }
+        /* State saat suara sedang berbicara (Warna Merah) */
+        
+        .btn-voice.playing {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+        /* --- CSS UNTUK DROPDOWN AUTOCOMPLETE --- */
+        
+        .autocomplete-items {
+            position: absolute;
+            top: 100%;
+            /* Menempel tepat di bawah kolom input */
+            left: 0;
+            right: 0;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            /* Melengkung di bawah */
+            z-index: 1005;
+            /* Harus tinggi agar tidak tertutup peta */
+            max-height: 250px;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            display: none;
+            /* Disembunyikan saat tidak mengetik */
+        }
+        
+        .autocomplete-item {
+            padding: 14px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        
+        .autocomplete-item:hover {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: white;
+            padding-left: 20px;
+            /* Efek bergeser sedikit saat disentuh */
+        }
+        /* Membuat huruf yang cocok menjadi tebal dan berwarna biru */
+        
+        .autocomplete-item strong {
+            color: var(--accent);
+            font-weight: 800;
+        }
     </style>
 </head>
 
@@ -603,9 +674,9 @@
     <div class="main-container">
         <div class="sidebar">
             <div class="search-container">
-                <input type="text" id="kecamatan-input" list="kecamatan-list" placeholder="Cari Lokasi Kecamatan...">
-                <datalist id="kecamatan-list"></datalist>
-                <i class="fas fa-search"></i>
+                <input type="text" id="kecamatan-input" placeholder="Cari Lokasi Kecamatan..." autocomplete="off">
+                <div id="autocomplete-list" class="autocomplete-items"></div>
+                <i class="fas fa-search" id="search-icon"></i>
             </div>
 
             <div class="btn-group">
@@ -631,9 +702,14 @@
             </div>
 
             <div class="card ai-card">
-                <div class="card-header" style="border-bottom-color: rgba(59,130,246,0.3);">
-                    <i class="fas fa-robot" style="color: #60a5fa;"></i>
-                    <h3 style="color: white; font-weight: 800;">Analisis AI Agent (Groq)</h3>
+                <div class="card-header" style="border-bottom-color: rgba(59,130,246,0.3); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-robot" style="color: #60a5fa;"></i>
+                        <h3 style="color: white; font-weight: 800; margin: 0;">Analisis AI Agent (Groq)</h3>
+                    </div>
+                    <button id="btn-voice" class="btn-voice" onclick="toggleVoiceAI()" style="display: none;" title="Putar/Hentikan Suara">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
                 </div>
                 <div id="ai-output" class="ai-text">
                     <div style="opacity: 0.7; text-align: center; padding: 20px 0; transition: 0.3s;">
@@ -670,7 +746,7 @@
     </div>
 
     <script>
-        const API_URL = "https://1y42vh6prh9b.shares.zrok.io/webhook";
+        const API_URL = "https://o8ij3n06n0l0.shares.zrok.io/webhook";
         let activeKecamatan = null;
         let trendChartInstance = null;
 
@@ -787,40 +863,6 @@
                 });
         }
 
-        // Script untuk mengambil list kecamatan ke kolom pencarian tetap sama
-        fetch(`${API_URL}/api/kecamatan`)
-            .then(res => res.json())
-            .then(data => {
-                const datalist = document.getElementById('kecamatan-list');
-                data.forEach(k => {
-                    let opt = document.createElement('option');
-                    opt.value = k.nama || k.kecamatan;
-                    datalist.appendChild(opt);
-                });
-            });
-
-        // UPDATE JIKA DICARI LEWAT SEARCH BAR (agar efeknya sama dengan saat diklik di peta)
-        document.getElementById('kecamatan-input').addEventListener('change', (e) => {
-            const val = e.target.value;
-            if (!val) return;
-            geojsonLayer.eachLayer(l => {
-                if (l.feature.properties.kecamatan.toLowerCase() === val.toLowerCase()) {
-                    activeKecamatan = l.feature.properties.kecamatan;
-
-                    // Trigger efek melayang
-                    geojsonLayer.resetStyle();
-                    l.bringToFront();
-
-                    // Zoom presisi ke polygon
-                    map.flyToBounds(l.getBounds(), {
-                        padding: [40, 40],
-                        duration: 1.2
-                    });
-
-                    processDistrict(l.feature.properties);
-                }
-            });
-        });
 
         function processDistrict(props) {
             document.getElementById('detail-card').style.display = 'block';
@@ -837,6 +879,7 @@
                 </div>
             `;
 
+            // Mengambil Data dari Groq AI
             fetch(`${API_URL}/api-mitigasi?nama=${encodeURIComponent(props.kecamatan)}`)
                 .then(res => res.json())
                 .then(data => {
@@ -845,11 +888,17 @@
                         rawContent = JSON.parse(rawContent);
                     }
                     document.getElementById('ai-output').innerHTML = marked.parse(rawContent);
-                    //TAMBAHKAN BARIS INI UNTUK MEMICU SUARA OTOMATIS 
-                    bacakanTeksAI(`Sistem mendeteksi wilayah Kecamatan ${props.kecamatan}. Berikut adalah analisis mitigasinya: ${rawContent}`);
+
+                    // 👇 UBAH BAGIAN INI: Simpan teks ke memori global dan munculkan tombol
+                    window.teksAISiapBaca = `Sistem mendeteksi wilayah Kecamatan ${props.kecamatan}. Berikut adalah analisis mitigasinya: ${rawContent}`;
+
+                    // Munculkan tombol dan reset kembali ke ikon volume
+                    document.getElementById('btn-voice').style.display = 'flex';
+                    resetVoiceUI();
                 })
                 .catch(err => {
                     document.getElementById('ai-output').innerHTML = `<div style="color: var(--danger);"><i class="fas fa-exclamation-triangle"></i> Gagal menghubungi AI Agent. Pastikan Zrok aktif.</div>`;
+                    document.getElementById('btn-voice').style.display = 'none'; // Sembunyikan tombol jika error
                 });
 
             fetch(`${API_URL}/riwayat-kecamatan?kecamatan=${encodeURIComponent(props.kecamatan)}`)
@@ -1074,27 +1123,162 @@
             }
         });
 
-        // --- SCRIPT UNTUK VOICE ASSISTANT AI ---
-        function bacakanTeksAI(teks) {
+        // --- SCRIPT AUTOCOMPLETE PENCARIAN KECAMATAN (ANTI-GAGAL) ---
 
-            // 1. Hentikan suara sebelumnya secara instan jika pengguna mengklik kecamatan lain
-            window.speechSynthesis.cancel();
+        // 1. Data statis 23 Kecamatan di Kab. Bekasi (Super Cepat tanpa API)
+        const kecamatanDataList = [
+            "Babelan", "Bojongmangu", "Cabangbungin", "Cibarusah", "Cibitung",
+            "Cikarang Barat", "Cikarang Pusat", "Cikarang Selatan", "Cikarang Timur", "Cikarang Utara",
+            "Karangbahagia", "Kedungwaringin", "Muaragembong", "Pebayuran", "Serang Baru",
+            "Setu", "Sukakarya", "Sukawangi", "Tambelang", "Tambun Selatan", "Tambun Utara", "Tarumajaya"
+        ];
 
-            // 2. Bersihkan teks dari simbol Markdown (*, #, _, -) agar robot tidak membaca kata "bintang-bintang"
-            let teksBersih = teks.replace(/[*#`_\-]/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim();
+        const searchInput = document.getElementById('kecamatan-input');
+        const autocompleteList = document.getElementById('autocomplete-list');
+        const searchIcon = document.getElementById('search-icon');
 
-            // 3. Inisialisasi Web Speech API bawaan browser
-            let suaraAI = new SpeechSynthesisUtterance(teksBersih);
+        // 2. Deteksi otomatis SETIAP KALI pengguna mengetik huruf
+        searchInput.addEventListener('input', function() {
+            let val = this.value;
+            autocompleteList.innerHTML = '';
 
-            suaraAI.lang = 'id-ID'; // Mengatur ke logat Bahasa Indonesia
-            suaraAI.rate = 1.1; // Kecepatan membaca (1.1 sedikit lebih sigap dan natural)
-            suaraAI.pitch = 1.0; // Nada suara normal
+            if (!val) {
+                autocompleteList.style.display = 'none';
+                return;
+            }
 
-            // 4. Mulai berbicara
-            window.speechSynthesis.speak(suaraAI);
+            let hasResult = false;
+
+            // 3. Cek kecamatan yang mengandung ketikan
+            kecamatanDataList.forEach(kec => {
+                if (kec.toLowerCase().includes(val.toLowerCase())) {
+                    hasResult = true;
+
+                    let itemDiv = document.createElement('div');
+                    itemDiv.className = 'autocomplete-item';
+
+                    let regex = new RegExp("(" + val + ")", "gi");
+                    itemDiv.innerHTML = kec.replace(regex, "<strong>$1</strong>");
+
+                    itemDiv.addEventListener('click', function() {
+                        searchInput.value = kec;
+                        autocompleteList.style.display = 'none';
+                        triggerPencarian(kec);
+                    });
+
+                    autocompleteList.appendChild(itemDiv);
+                }
+            });
+
+            autocompleteList.style.display = hasResult ? 'block' : 'none';
+        });
+
+        // 4. Sembunyikan dropdown jika klik di luar
+        document.addEventListener('click', function(e) {
+            if (e.target !== searchInput && autocompleteList) {
+                autocompleteList.style.display = 'none';
+            }
+        });
+
+        // 5. Fungsi Pemicu Peta dan AI
+        function triggerPencarian(val) {
+            if (!val) return;
+            val = val.toLowerCase().trim();
+
+            geojsonLayer.eachLayer(l => {
+                if (l.feature.properties.kecamatan.toLowerCase() === val) {
+                    activeKecamatan = l.feature.properties.kecamatan;
+
+                    geojsonLayer.resetStyle();
+                    l.bringToFront();
+                    map.flyToBounds(l.getBounds(), {
+                        padding: [40, 40],
+                        duration: 1.2
+                    });
+
+                    processDistrict(l.feature.properties);
+                }
+            });
         }
+
+        // 6. Tombol Enter
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                autocompleteList.style.display = 'none';
+                let firstMatch = kecamatanDataList.find(k => k.toLowerCase().includes(this.value.toLowerCase()));
+                if (firstMatch) {
+                    this.value = firstMatch;
+                    triggerPencarian(firstMatch);
+                }
+            }
+        });
+
+        // 7. Ikon Kaca Pembesar
+        if (searchIcon) {
+            searchIcon.style.cursor = 'pointer';
+            searchIcon.addEventListener('click', function() {
+                autocompleteList.style.display = 'none';
+                let firstMatch = kecamatanDataList.find(k => k.toLowerCase().includes(searchInput.value.toLowerCase()));
+                if (firstMatch) {
+                    searchInput.value = firstMatch;
+                    triggerPencarian(firstMatch);
+                }
+            });
+        }
+
+        // --- SCRIPT UNTUK VOICE ASSISTANT AI (ON-DEMAND) ---
+        window.teksAISiapBaca = ""; // Variabel global untuk menyimpan teks
+
+        function toggleVoiceAI() {
+            const btnVoice = document.getElementById('btn-voice');
+            const icon = btnVoice.querySelector('i');
+
+            // Jika suara sedang berjalan, maka HENTIKAN
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+                resetVoiceUI();
+            }
+            // Jika suara sedang diam, maka MULAI BACA
+            else {
+                if (window.teksAISiapBaca !== "") {
+                    // Bersihkan karakter markdown
+                    let teksBersih = window.teksAISiapBaca.replace(/[*#`_\-]/g, ' ').replace(/\s+/g, ' ').trim();
+                    let suaraAI = new SpeechSynthesisUtterance(teksBersih);
+
+                    suaraAI.lang = 'id-ID';
+                    suaraAI.rate = 1.1;
+
+                    // Event ketika suara selesai bicara otomatis
+                    suaraAI.onend = function() {
+                        resetVoiceUI();
+                    };
+
+                    // Mulai bicara
+                    window.speechSynthesis.speak(suaraAI);
+
+                    // Ubah tombol jadi mode "Stop" (Merah)
+                    btnVoice.classList.add('playing');
+                    icon.className = 'fas fa-stop';
+                }
+            }
+        }
+
+        // Fungsi bantuan untuk mengembalikan tombol ke bentuk semula
+        function resetVoiceUI() {
+            const btnVoice = document.getElementById('btn-voice');
+            if (btnVoice) {
+                const icon = btnVoice.querySelector('i');
+                btnVoice.classList.remove('playing');
+                icon.className = 'fas fa-volume-up';
+            }
+        }
+
+        // Tambahan: Hentikan suara jika pengguna mengklik kecamatan lain di tengah-tengah
+        map.on('click', function() {
+            window.speechSynthesis.cancel();
+            resetVoiceUI();
+        });
     </script>
 </body>
 
